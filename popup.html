@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --bg2: #fff;
+      --text: #333;
+      --text2: #666;
+      --border: #ddd;
+      --primary: #4285f4;
+    }
+    body.dark {
+      --bg: #1e1e1e;
+      --bg2: #2d2d2d;
+      --text: #eee;
+      --text2: #aaa;
+      --border: #444;
+    }
+    body {
+      width: 380px;
+      max-height: 550px;
+      overflow-y: auto;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    #darkModeToggle {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      width: auto;
+    }
+    #count {
+      font-size: 48px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    #count.warning { color: #f4b400; }
+    #count.danger { color: #db4437; }
+    
+    .warning-msg {
+      margin-top: 5px;
+      padding: 5px;
+      border-radius: 4px;
+      font-size: 12px;
+      display: none;
+    }
+    .warning-msg.show { display: block; }
+    .warning-msg.warning { background: #fff3cd; color: #856404; }
+    .warning-msg.danger { background: #f8d7da; color: #721c24; }
+    
+    .section {
+      margin-top: 15px;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-title .toggle {
+      font-size: 12px;
+      color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .window-item, .domain-item, .duplicate-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .window-item .info, .domain-item .info, .duplicate-item .info {
+      flex: 1;
+      overflow: hidden;
+    }
+    .window-item .incognito {
+      color: var(--text2);
+      font-size: 11px;
+    }
+    
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    
+    .close-btn {
+      width: auto !important;
+      padding: 3px 8px !important;
+      margin: 0 0 0 8px !important;
+      font-size: 11px !important;
+      background: #db4437 !important;
+    }
+    .group-btn {
+      width: auto !important;
+      padding: 3px 8px !important;
+      margin: 0 0 0 4px !important;
+      font-size: 11px !important;
+      background: #34a853 !important;
+    }
+    
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-row button {
+      flex: 1;
+      min-width: 80px;
+    }
+    .btn-green { background: #34a853; }
+    .btn-orange { background: #f4b400; }
+    .btn-red { background: #db4437; }
+    
+    .duplicate-item .title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+    }
+    .duplicate-group {
+      margin-bottom: 10px;
+      padding: 8px;
+      background: var(--bg2);
+      border-radius: 5px;
+    }
+    .duplicate-group-title {
+      font-size: 11px;
+      color: var(--text2);
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      padding: 3px 0;
+      color: var(--text2);
+    }
+    
+    .settings-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .settings-row label {
+      font-size: 13px;
+      min-width: 100px;
+    }
+    .settings-row input {
+      width: 60px;
+      padding: 5px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg2);
+      color: var(--text);
+    }
+    .color-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .color-warning { background: #f4b400; }
+    .color-danger { background: #db4437; }
+    
+    #searchInput {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      background: var(--bg2);
+      color: var(--text);
+    }
+    .search-results {
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .search-item {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .search-item:hover { background: var(--bg2); }
+    .search-item .title {
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-item .url {
+      color: var(--text2);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .audio-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .audio-item .title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 8px;
+    }
+    .audio-item button {
+      width: auto;
+      padding: 4px 8px;
+      margin: 0 2px;
+      font-size: 11px;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: #ccc;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-switch.active { background: #34a853; }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left 0.3s;
+    }
+    .toggle-switch.active::after { left: 26px; }
+    
+    .time-inputs {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .time-inputs input {
+      width: 45px;
+      padding: 5px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-align: center;
+      background: var(--bg2);
+      color: var(--text);
+    }
+    .time-inputs span {
+      font-size: 12px;
+    }
+    
+    .hidden { display: none; }
+    .collapsible-content { display: none; margin-top: 10px; }
+    .collapsible-content.show { display: block; }
+    
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .quick-actions button {
+      margin: 0;
+      font-size: 12px;
+      padding: 8px;
+    }
+    
+    .stats-chart {
+      height: 100px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      padding: 10px 0;
+    }
+    .stats-bar {
+      flex: 1;
+      background: var(--primary);
+      min-height: 5px;
+      border-radius: 2px 2px 0 0;
+      position: relative;
+    }
+    .stats-bar:hover::after {
+      content: attr(data-info);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    
+    .shortcuts-info {
+      font-size: 11px;
+      color: var(--text2);
+      padding: 8px;
+      background: var(--bg2);
+      border-radius: 5px;
+    }
+    .shortcuts-info div {
+      margin: 3px 0;
+    }
+    .shortcuts-info kbd {
+      background: var(--bg);
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+    
+    .group-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      margin-bottom: 5px;
+      background: var(--bg2);
+      border-radius: 5px;
+      border-left: 4px solid;
+    }
+    .group-item .info {
+      flex: 1;
+      overflow: hidden;
+    }
+    .group-item .title {
+      font-weight: 500;
+      font-size: 13px;
+    }
+    .group-item .count {
+      font-size: 11px;
+      color: var(--text2);
+    }
+    .group-item .actions {
+      display: flex;
+      gap: 4px;
+    }
+    .group-item .actions button {
+      width: auto;
+      padding: 3px 6px;
+      margin: 0;
+      font-size: 10px;
+    }
+    .group-tabs {
+      padding-left: 15px;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+    .group-tab-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .group-tab-item .tab-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .color-picker {
+      display: flex;
+      gap: 4px;
+      margin-top: 5px;
+    }
+    .color-btn {
+      width: 20px !important;
+      height: 20px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border-radius: 50% !important;
+      border: 2px solid transparent !important;
+    }
+    .color-btn:hover { border-color: var(--text) !important; }
+    
+    select {
+      padding: 5px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg2);
+      color: var(--text);
+      font-size: 12px;
+    }
+    
+    .template-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      margin-bottom: 5px;
+      background: var(--bg2);
+      border-radius: 5px;
+    }
+    .template-item .info {
+      flex: 1;
+    }
+    .template-item .title {
+      font-weight: 500;
+    }
+    .template-item .count {
+      font-size: 11px;
+      color: var(--text2);
+      margin-left: 5px;
+    }
+    .template-item .actions {
+      display: flex;
+      gap: 4px;
+    }
+    .template-item .actions button {
+      width: auto;
+      padding: 4px 8px;
+      margin: 0;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button id="langToggle" title="Switch language" style="position:absolute;top:0;left:0;background:none;border:none;font-size:12px;cursor:pointer;padding:0;width:auto;color:var(--text)">EN</button>
+    <button id="darkModeToggle" title="Dark/Light mode">🌙</button>
+    <div id="count">0</div>
+    <div id="tabsLabel">tabs open</div>
+    <div id="warningMsg" class="warning-msg"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleSearch">🔍 Search tab</div>
+    <input type="text" id="searchInput" placeholder="Type name or URL to find tab...">
+    <div id="searchResults" class="search-results"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">
+      <span id="titleGroups">📁 Tab Groups</span>
+      <span class="toggle" id="toggleGroups">Hiện chi tiết</span>
+    </div>
+    <div id="groupsList"></div>
+    <div class="quick-actions" style="margin-top:10px">
+      <button id="collapseAll" title="Collapse all groups">🔽 Collapse all</button>
+      <button id="expandAll" title="Expand all groups">🔼 Expand all</button>
+      <button id="ungroupAll" class="btn-orange" title="Ungroup all tabs">📤 Ungroup all</button>
+      <button id="autoGroupByDomain" class="btn-green" title="Auto group tabs by domain">🤖 Auto-group by domain</button>
+      <button id="saveGroups" title="Export groups to JSON">💾 Save groups</button>
+      <button id="loadGroups" title="Import groups from JSON">📂 Load groups</button>
+    </div>
+    <input type="file" id="loadGroupsFile" accept=".json" class="hidden">
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleQuickActions">⚡ Quick actions</div>
+    <button id="undoBtn" disabled style="margin-bottom:10px;background:#666">↩️ Hoàn tác</button>
+    <div class="quick-actions">
+      <button id="sortByDomain" title="Sort tabs by domain">📑 Sort by domain</button>
+      <button id="sortByTime" title="Sort tabs by time opened">🕐 Sort by time</button>
+      <button id="closeLeft" title="Close all tabs to the left">⬅️ Close left tabs</button>
+      <button id="closeRight" title="Close all tabs to the right">➡️ Close right tabs</button>
+      <button id="pinAll" title="Pin all tabs">📌 Pin all</button>
+      <button id="unpinAll" title="Unpin all tabs">📍 Unpin all</button>
+      <button id="suspendTabs" class="btn-orange" title="Suspend inactive tabs to save RAM">💤 Suspend tabs</button>
+      <button id="bookmarkAll" class="btn-green" title="Bookmark all tabs">🔖 Bookmark all</button>
+    </div>
+  </div>
+  
+  <div class="section" id="audioSection" style="display:none">
+    <div class="section-title" id="titleAudio">🔊 Tabs playing audio</div>
+    <div id="audioTabs"></div>
+  </div>
+  
+  <div class="section" id="duplicatesSection" style="display:none">
+    <div class="section-title" id="titleDuplicates">🔄 Duplicate tabs</div>
+    <div id="duplicates"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleWindows">📂 By window</div>
+    <div id="windows"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">
+      <span id="titleDomains">🌐 By domain</span>
+      <span class="toggle" id="toggleDomains">Hiện tất cả</span>
+    </div>
+    <div id="domains"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleExport">💾 Export/Import/Share</div>
+    <div class="btn-row">
+      <button id="exportTabs" title="Export tabs to JSON file">Export</button>
+      <button id="importTabs" class="btn-green" title="Open tabs from JSON file">Import</button>
+      <button id="shareTabs" class="btn-orange" title="Copy tabs list to clipboard">Share</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" class="hidden">
+  </div>
+  
+  <div class="section">
+    <div class="section-title">
+      <span id="titleAutoClose">🕐 Auto-close old tabs</span>
+      <div id="autoCloseToggle" class="toggle-switch"></div>
+    </div>
+    <div id="autoCloseContent" class="collapsible-content">
+      <div style="margin-bottom:8px;font-size:13px;" id="labelCloseAfter">Close unused tabs after:</div>
+      <div class="time-inputs">
+        <input type="number" id="autoCloseHours" min="0" value="1"><span id="labelHours">hrs</span>
+        <input type="number" id="autoCloseMinutes" min="0" value="0"><span id="labelMinutes">min</span>
+        <input type="number" id="autoCloseSeconds" min="0" value="0"><span id="labelSeconds">sec</span>
+      </div>
+      <button id="saveAutoClose" class="btn-green" style="margin-top:10px;">Save time</button>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">
+      <span id="titleAlerts">⚙️ Alert settings</span>
+      <div id="alertToggle" class="toggle-switch"></div>
+    </div>
+    <div id="alertContent" class="collapsible-content">
+      <div class="settings-row">
+        <label style="min-width:100px" id="labelYellow"><span class="color-indicator color-warning"></span>Yellow from:</label>
+        <input type="number" id="warningLimit" min="1" value="20"><span style="margin-left:5px">tabs</span>
+      </div>
+      <div class="settings-row">
+        <label style="min-width:100px" id="labelRed"><span class="color-indicator color-danger"></span>Red from:</label>
+        <input type="number" id="dangerLimit" min="1" value="30"><span style="margin-left:5px">tabs</span>
+      </div>
+      <button id="saveSettings" class="btn-green">Save settings</button>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleTemplates">📋 Your templates</div>
+    <div id="templatesList"></div>
+    <div class="btn-row" style="margin-top:8px">
+      <button id="createTemplate" class="btn-green" title="Create new template">➕ Create template</button>
+      <button id="saveCurrentAsTemplate" class="btn-orange" title="Save current tabs as template">💾 Save current tabs</button>
+    </div>
+  </div>
+  
+  <div class="section" id="tabNotesSection">
+    <div class="section-title" id="titleTabNotes">📝 Tab Notes</div>
+    <textarea id="tabNoteInput" placeholder="Add note for this tab..." style="width:100%;height:60px;padding:8px;border:1px solid var(--border);border-radius:5px;background:var(--bg2);color:var(--text);resize:none;box-sizing:border-box;"></textarea>
+    <button id="saveTabNote" class="btn-green" style="margin-top:5px;">Save</button>
+  </div>
+  
+  <div class="section" id="tabTimerSection">
+    <div class="section-title" id="titleTabTimer">⏱️ Tab Timer</div>
+    <div id="tabTimerList" style="max-height:150px;overflow-y:auto;"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">
+      <span id="titleFocusMode">🎯 Focus Mode</span>
+      <div id="focusModeToggle" class="toggle-switch"></div>
+    </div>
+    <div id="focusModeStatus" style="font-size:12px;color:var(--text2);margin-top:5px;"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleShortcuts">⌨️ Shortcuts</div>
+    <div class="shortcuts-info">
+      <div id="shortcutQuickSwitch"><kbd>Ctrl+Shift+Q</kbd> Quick switch</div>
+      <div id="shortcutSuspend"><kbd>Ctrl+Shift+S</kbd> Suspend tabs</div>
+      <div id="shortcutDuplicates"><kbd>Ctrl+Shift+D</kbd> Close duplicates</div>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleStats">📊 Stats (24h)</div>
+    <div id="statsChart" class="stats-chart"></div>
+    <div id="statsInfo" style="font-size:12px;color:var(--text2);"></div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title" id="titleHistory">📜 Recent history</div>
+    <div id="history"></div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
