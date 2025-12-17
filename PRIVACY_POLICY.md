@@ -68,8 +68,8 @@ You can delete all extension data at any time by:
 
 If you have any questions about this Privacy Policy, please contact us at:
 
-- Email: [your-email@example.com]
-- GitHub: [your-github-url]
+- Email: [quidang9656@gmail.com]
+- GitHub: [https://github.com/dangtanqui/tab-counter]
 
 ---
 
